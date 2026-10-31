@@ -1,0 +1,574 @@
+extends layout
+
+block content
+    h1 Historial del Paciente
+
+    div.button-container
+        
+        button(onclick=`window.location.href='/atenciones/historialcompleto/${id_paciente}/${id_agendamedico}'`) Historia Clínica
+
+    h1 Ingresar Entrada de Atención
+
+    if paciente
+        div
+            h2 Datos del Paciente
+            p DNI: #{paciente.dni_paciente || 'No disponible'}
+            p Nombre: #{paciente.nombre || 'No disponible'}
+            p Apellido: #{paciente.apellido || 'No disponible'}
+            p Email: #{paciente.email || 'No disponible'}
+            p Dirección: #{paciente.direccion || 'No disponible'}
+            p Teléfono: #{paciente.telefono || 'No disponible'}
+
+            if paciente.fecha_nac
+                - var fechaNacimiento = new Date(paciente.fecha_nac)
+                p Fecha de Nacimiento: #{isNaN(fechaNacimiento.getTime()) ? 'No disponible' : fechaNacimiento.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}
+            else
+                p Fecha de Nacimiento: No disponible
+
+            p Género: #{paciente.genero || 'No disponible'}
+
+        h2 Registrar Nueva Atención
+
+        - var today = new Date().toISOString().split('T')[0]
+        // Alergias
+        button#btn-alergias Alergias
+        div#alergias.section(style="display: none;")    
+            form#formAlergia
+                label Tipo de Alergia:
+                select(id="alergias_tipo")
+                    if tiposAlergias.length > 0
+                        each tipo in tiposAlergias
+                            option(value=tipo.nombre) #{tipo.nombre}
+                    else
+                        option(value="") No hay tipos de alergia disponibles
+                label Fecha Desde:
+                input(type="date", id="alergias_fecha_desde")
+                label Fecha Hasta:
+                input(type="date", id="alergias_fecha_hasta")
+                button#btn-agregar-alergia(onclick=`agregarAlergia(event)`) Agregar Alergia
+
+        // Antecedentes
+        button#btn-antecedentes Antecedentes
+        div#antecedentes.section(style="display: none;")
+            form#formAntecedentes
+                label Descripción:
+                textarea(name="antecedentes_descripcion")
+                label Fecha Desde:
+                input(type="date", name="antecedentes_fecha_desde" ,id = "antecedentes_fecha_desde")
+                label Fecha Hasta:
+                input(type="date", name="antecedentes_fecha_hasta",id = "antecedentes_fecha_hasta")
+                button#btn-agregar-habito(onclick="guardarAntecedentes(event)") Agregar Antecedente
+
+        // Medicamentos
+        button#btn-medicamentos Medicamentos
+        div#medicamentos.section(style="display: none;")
+            form#formMedicamentos
+                label Descripción:
+                textarea(name="medicamentos_descripcion")
+                button#btn-agregar-medicamento(onclick="guardarMedicamentos(event)") Agregar Medicamento
+
+        //- Evoluciones
+        button#btn-evolucion Evoluciones
+        div#evolucion.section(style="display: none;")
+            form#formEvoluciones
+                label Descripción:
+                //- Select para elegir una plantilla
+                select#select-plantilla(onchange="cargarPlantilla()")
+                    option(value="") -- Selecciona una plantilla --
+                    each plantilla in plantillas
+                        option(value=plantilla.contenido) #{plantilla.titulo}  // Usa plantilla.contenido como valor
+                
+                div#editor-evolucion(style="height: 200px;") // Editor de texto enriquecido
+                input(type="hidden", name="evolucion_descripcion", id="evolucion_descripcion")
+                button#btn-agregar-evolucion(onclick="guardarEvolucion(event)") Agregar Evolución
+        // Diagnóstico
+        button#btn-diagnostico Diagnóstico
+        div#diagnostico.section(style="display: none;")
+            form#formDiagnostico
+                label Descripción:
+                textarea(name="diagnostico_descripcion")
+                label Estado:
+                select(name="calidades_tipo")
+                    if TiposCalidades && TiposCalidades.length > 0    
+                        each tipo in TiposCalidades
+                            option(value=tipo.calidad) #{tipo.calidad}
+                    else
+                        option(value="") No hay tipos de diagnostico disponibles
+                button#btn-agregar-diagnostico(onclick="guardarDiagnostico(event)") Agregar Diagnóstico
+
+        // Hábitos
+        button#btn-habitos Hábitos
+        div#habitos.section(style="display: none;")
+            form#formHabitos
+                label Descripción:
+                textarea(name="habitos_descripcion")
+                label Fecha Desde:
+                input(type="date", name="habitos_fecha_desde",id = "habitos_fecha_desde")
+                label Fecha Hasta:
+                input(type="date", name="habitos_fecha_hasta",id = "habitos_fecha_hasta")
+                button#btn-agregar-habito(onclick="guardarHabitos(event)") Agregar Hábito
+
+        h3 Evolución y Diagnóstico son obligatorios
+
+        button(onclick="updateEntrada()", id="btn-finalizar-atencion", disabled=true) Finalizar Atención
+
+
+        h2 Historial de Atenciones
+        if atenciones && atenciones.length > 0
+            p Se encontraron #{atenciones.length} atenciones.
+            table
+                thead
+                    tr
+                        th Fecha
+                        th Médico
+                        th Alergias
+                        th Antecedentes
+                        th Medicamentos
+                        th Hábitos
+                        th Diagnóstico
+                        th Evolución
+                tbody
+                    each atencion in atenciones
+                        tr
+                            td #{atencion.fecha || 'No disponible'}
+                            td #{atencion.medico || 'No disponible'}
+                            td #{atencion.alergias || 'No disponible'}
+                            td #{atencion.antecedentes || 'No disponible'}
+                            td #{atencion.medicamentos || 'No disponible'}
+                            td #{atencion.habitos || 'No disponible'}
+                            td #{atencion.diagnostico || 'No disponible'}
+                            td !{atencion.evolucion || 'No disponible'}
+        else
+            p No se encontraron atenciones para este paciente.
+    else
+        p No se encontraron datos para este paciente.
+
+    script(src="https://cdn.quilljs.com/1.3.6/quill.js")
+    link(rel="stylesheet" href="https://cdn.quilljs.com/1.3.6/quill.snow.css")
+
+    script.
+        const id_turno = #{id_turno};
+        var quill = new Quill('#editor-evolucion', { theme: 'snow' });
+        function cargarPlantilla() {
+            const select = document.getElementById('select-plantilla');
+            const contenido = select.value; // Obtiene el contenido seleccionado
+
+            if (contenido) {
+                quill.clipboard.dangerouslyPasteHTML(contenido); // Carga el contenido en el editor
+            }
+        }
+        let evolucionGuardada = false;
+        let diagnosticoGuardado = false;
+        
+        function updateEntrada() {
+            
+            const id_entrada ={id_entrada: #{atencionActual.id_entrada}}; 
+          
+            fetch('/atenciones/updateFinAtencion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(id_entrada) // Enviamos como un objeto
+            })
+            .then(response => {
+                console.log("Respuesta del servidor:", response);
+                if (!response.ok) {
+                    throw new Error('Error al cerrar atención');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Atención cerrada:', data.message);
+            })
+            .catch(error => {
+                console.error('Hubo un problema al cerrar atención:', error);
+                console.log("Enviando id_turno:", id_turno);
+                fetch('/turnos/finalizado', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id_turno: id_turno }) // Aquí estamos enviando el id_turno
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al finalizar el turno');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Turno finalizado:', data);
+                })
+                .catch(error => {
+                    console.error('Error al enviar la solicitud:', error);
+                });
+                 setTimeout(() => {
+                    window.location.href = '/turnos/deldia'; // Redirige después del tiempo de espera
+                }, 1000); 
+            });
+        }
+        function agregarAlergia() {
+                event.preventDefault();
+                const tipoAlergia = document.getElementById('alergias_tipo').value;
+                const fechaDesde = document.getElementById('alergias_fecha_desde').value;
+                const fechaHastafinal = document.getElementById('alergias_fecha_hasta').value;
+
+                 const fechaHasta = fechaHastafinal === "" ? null : fechaHastafinal;
+
+                const alergiaEntrada = {
+                    id_entrada: #{atencionActual.id_entrada},
+                    tipo: tipoAlergia,
+                    fechaDesde: fechaDesde,
+                    fechaHasta: fechaHasta
+                };
+                fetch('/alergias/create', {
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(alergiaEntrada) // Convierte el objeto a una cadena JSON
+                })
+                    .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al crear la alergia');
+                    }
+                    return response.json(); // Procesa la respuesta JSON
+                  
+                    })
+                    .then(data => {
+                    // Después de crear la alergia, redirige al usuario a otra página
+                      
+                    })
+                    .catch(error => {
+                    console.error('Hubo un problema al agregar la alergia:', error);
+                    document.getElementById('formAlergia').reset();
+                    document.getElementById('alergias').style.display = 'none';
+                    });
+            }
+        const fechaDesdeInput = document.getElementById('alergias_fecha_desde');
+        const fechaHastaInput = document.getElementById('alergias_fecha_hasta');
+        
+        // Función que actualiza la fecha mínima de 'fecha_hasta'
+        function actualizarFechaHasta() {
+            const fechaDesde2 = fechaDesdeInput.value;
+            fechaHastaInput.min = fechaDesde2; // Establece "fecha_hasta" como mínimo "fecha_desde"
+            // Puedes agregar validaciones adicionales si es necesario
+            console.log("Fecha hasta actualizada:", fechaHastaInput.min);
+        }
+
+        // Función que inicializa el comportamiento cuando se carga la página
+        function inicializarCamposFecha() {
+            // Si ya hay una fecha seleccionada, actualizar la fecha hasta
+            if (fechaDesdeInput.value) {
+                actualizarFechaHasta();
+            }
+
+            // Agregar evento para actualizar 'fecha_hasta' cada vez que cambie 'fecha_desde'
+            fechaDesdeInput.addEventListener('input', actualizarFechaHasta);
+        }
+
+        // Llamar la función para inicializar cuando se carga el DOM
+        inicializarCamposFecha();
+
+        
+
+        function guardarAntecedentes() {
+            event.preventDefault();
+            const descripcion = document.querySelector('textarea[name="antecedentes_descripcion"]').value;
+            const fechaDesde = document.querySelector('input[name="antecedentes_fecha_desde"]').value;
+            const fechaHastafinal = document.querySelector('input[name="antecedentes_fecha_hasta"]').value;
+
+            const fechaHasta = fechaHastafinal === "" ? null : fechaHastafinal;
+
+
+            const antecedentesEntrada = {
+                id_entrada: #{atencionActual.id_entrada},
+                descripcion: descripcion,
+                fechaDesde: fechaDesde,
+                fechaHasta: fechaHasta
+            };
+
+            fetch('/antecedentes/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(antecedentesEntrada)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al crear antecedentes');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Resetear el formulario de antecedentes
+                
+            })
+            .catch(error => {
+                console.error('Hubo un problema al agregar antecedentes:', error);
+                document.querySelector('form#formAntecedentes').reset();
+                document.getElementById('antecedentes').style.display = 'none';
+            });
+        }
+
+        function actualizarFechaHastaAntecedentes() {
+            const fechaDesde2 = document.querySelector('input[name="antecedentes_fecha_desde"]').value;
+            const fechaHastaInput = document.querySelector('input[name="antecedentes_fecha_hasta"]');
+            fechaHastaInput.min = fechaDesde2; // Establece "fecha_hasta" como mínimo "fecha_desde"
+        }
+
+        // Función que inicializa el comportamiento cuando se carga la página para antecedentes
+        function inicializarCamposFechaAntecedentes() {
+            const fechaDesdeInput = document.querySelector('input[name="antecedentes_fecha_desde"]');
+            
+            // Si ya hay una fecha seleccionada, actualizar la fecha hasta
+            if (fechaDesdeInput.value) {
+                actualizarFechaHastaAntecedentes();
+            }
+
+            // Agregar evento para actualizar 'fecha_hasta' cada vez que cambie 'fecha_desde'
+            fechaDesdeInput.addEventListener('input', actualizarFechaHastaAntecedentes);
+        }
+
+        // Llamar la función para inicializar cuando se carga el DOM
+        inicializarCamposFechaAntecedentes();
+        function guardarMedicamentos() {
+            event.preventDefault();
+            const descripcion = document.querySelector('textarea[name="medicamentos_descripcion"]').value;
+
+            const medicamentoEntrada = {
+                id_entrada: #{atencionActual.id_entrada},
+                descripcion: descripcion
+            };
+
+            fetch('/medicamentos/create', {
+                
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(medicamentoEntrada)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al crear medicamento');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Resetear el formulario de medicamentos
+                
+            })
+            .catch(error => {
+                console.error('Hubo un problema al agregar medicamento:', error);
+                document.querySelector('form#formMedicamentos').reset();
+                document.getElementById('medicamentos').style.display = 'none';
+            });
+        }
+        function guardarHabitos() {
+            event.preventDefault();
+            const descripcion = document.querySelector('textarea[name="habitos_descripcion"]').value;
+            const fechaDesde = document.querySelector('input[name="habitos_fecha_desde"]').value;
+            const fechaHastafinal = document.querySelector('input[name="habitos_fecha_hasta"]').value;
+
+            const fechaHasta = fechaHastafinal === "" ? null : fechaHastafinal;
+
+            const habitosEntrada = {
+                id_entrada: #{atencionActual.id_entrada},
+                descripcion: descripcion,
+                fechaDesde: fechaDesde,
+                fechaHasta: fechaHasta
+            };
+
+            fetch('/habitos/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(habitosEntrada)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al crear hábito');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Resetear el formulario de hábitos
+               
+            })
+            .catch(error => {
+                console.error('Hubo un problema al agregar hábito:', error);
+                document.querySelector('form#formHabitos').reset();
+                document.getElementById('habitos').style.display = 'none';
+            });
+        }
+        // Función que actualiza la fecha mínima de 'fecha_hasta' para hábitos
+        function actualizarFechaHastaHabitos() {
+            const fechaDesde2 = document.querySelector('input[name="habitos_fecha_desde"]').value;
+            const fechaHastaInput = document.querySelector('input[name="habitos_fecha_hasta"]');
+            fechaHastaInput.min = fechaDesde2; // Establece "fecha_hasta" como mínimo "fecha_desde"
+        }
+
+        // Función que inicializa el comportamiento cuando se carga la página para hábitos
+        function inicializarCamposFechaHabitos() {
+            const fechaDesdeInput = document.querySelector('input[name="habitos_fecha_desde"]');
+            
+            // Si ya hay una fecha seleccionada, actualizar la fecha hasta
+            if (fechaDesdeInput.value) {
+                actualizarFechaHastaHabitos();
+            }
+
+            // Agregar evento para actualizar 'fecha_hasta' cada vez que cambie 'fecha_desde'
+            fechaDesdeInput.addEventListener('input', actualizarFechaHastaHabitos);
+        }
+
+        // Llamar la función para inicializar cuando se carga el DOM
+        inicializarCamposFechaHabitos();
+        
+        function guardarDiagnostico() {
+             event.preventDefault();
+            
+            const descripcion = document.querySelector('textarea[name="diagnostico_descripcion"]').value;
+            const id_calidad = document.querySelector('select[name="calidades_tipo"]').value;
+
+            const diagnosticoEntrada = {
+                id_entrada: #{atencionActual.id_entrada},
+                descripcion: descripcion,
+                id_calidad: id_calidad
+            };
+
+            fetch('/diagnosticos/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(diagnosticoEntrada)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al crear diagnóstico');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Resetear el formulario de diagnóstico
+               
+                diagnosticoGuardado = true;
+                actualizarBotonFinalizar();
+            })
+            .catch(error => {
+                console.error('Hubo un problema al agregar diagnóstico:', error);
+               
+                diagnosticoGuardado = true;
+                actualizarBotonFinalizar();
+                document.querySelector('form#formDiagnostico').reset();
+                document.getElementById('diagnostico').style.display = 'none';
+            });
+        }
+       function guardarEvolucion() {
+            event.preventDefault(); 
+            
+            if (!quill) {
+                console.error("Quill no está inicializado.");
+                return;
+            }
+
+            // Guardar el contenido con formato HTML
+            const descripcion = quill.root.innerHTML;
+
+            if (!descripcion.trim()) {
+                console.error("La descripción de la evolución está vacía.");
+                return;
+            }
+
+            const evolucionEntrada = {
+                id_entrada: #{atencionActual.id_entrada},
+                descripcion: descripcion
+            };
+
+            fetch('/evoluciones/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(evolucionEntrada)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al crear evolución');
+                }
+                return response.json();
+            })
+            .then(data => {
+                quill.root.innerHTML = ''; // Borra el contenido del editor
+                evolucionGuardada = true;
+                actualizarBotonFinalizar();
+               
+                
+            })
+            .catch(error => {
+                console.error('Hubo un problema al agregar evolución:', error);
+                document.getElementById('evolucion').style.display = 'none';
+                console.log('Evolución creada:', data.message);
+            });
+        }
+
+        function actualizarBotonFinalizar() {
+                const finalizarButton = document.getElementById('btn-finalizar-atencion');
+                finalizarButton.disabled = !(evolucionGuardada && diagnosticoGuardado);
+            }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            
+
+            
+            
+
+           
+
+            function toggleSection(id) {
+                document.querySelectorAll('.section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                document.getElementById(id).style.display = 'block';
+            }
+
+            document.getElementById('btn-alergias').addEventListener('click', () => toggleSection('alergias'));
+            document.getElementById('btn-antecedentes').addEventListener('click', () => toggleSection('antecedentes'));
+            document.getElementById('btn-medicamentos').addEventListener('click', () => toggleSection('medicamentos'));
+            document.getElementById('btn-evolucion').addEventListener('click', () => toggleSection('evolucion'));
+            document.getElementById('btn-diagnostico').addEventListener('click', () => toggleSection('diagnostico'));
+            document.getElementById('btn-habitos').addEventListener('click', () => toggleSection('habitos'));
+
+           
+
+          
+            
+
+            
+            const fechaDesdeInput = document.getElementById('alergias_fecha_desde');
+            const fechaDesdeHabitos = document.getElementById('habitos_fecha_desde');
+           
+            const btnAlergias = document.getElementById('btn-agregar-alergia');
+           
+
+            // Función para habilitar o deshabilitar el botón
+            function toggleBotonAlergia() {
+                btnAlergias.disabled = !fechaDesdeInput.value; // Deshabilita el botón si no hay fecha
+            }
+
+          
+
+            // Verificar la fecha al cargar la página
+            toggleBotonAlergia();
+         
+
+            // Agregar un evento para cuando cambie el valor de la fecha
+            fechaDesdeInput.addEventListener('input', toggleBotonAlergia);
+           
+
+            
+        });

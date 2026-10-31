@@ -1,0 +1,154 @@
+/* General */
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif; /* Cambio de tipo de fuente */
+    background-color: #f3f6fb; /* Color de fondo muy suave */
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+h1, h2, h3 {
+    color: #34495e; /* Color de encabezado ligeramente más oscuro */
+    margin-bottom: 15px;
+}
+
+h1 {
+    border-bottom: 2px solid #3498db; /* Línea decorativa en h1 */
+    padding-bottom: 5px;
+}
+
+h2 {
+    color: #1abc9c; /* Color para los h2 para diferenciarlos */
+}
+
+h3 {
+    color: #e67e22; /* Color para los h3 para añadir contraste */
+}
+
+button {
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px; /* Espaciado del botón respecto a los inputs */
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+.button-container {
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: #fff; /* Fondo blanco para destacar el contenido */
+    border: 1px solid #ccc; /* Borde ligero */
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+table th {
+    background-color: #ecf0f1; /* Color de fondo claro para encabezados */
+    font-weight: bold;
+    color: #34495e; /* Color de texto */
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f7f9fc;
+}
+
+/* Input and Select Styling */
+input[type="date"], input[type="text"], input[type="password"], select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* Form Sections */
+.section {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombras ligeras */
+}
+
+/* Reloj */
+#reloj {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    color: #555;
+    font-weight: bold;
+}
+
+/* Disabled Button */
+button:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+}
+
+/* Estilo específico para la página de login */
+.login-page {
+    background-image: url('/login.jpg'); /* Asegúrate de que esta ruta sea correcta */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.login-container {
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 300px;
+    max-width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+    
+    h1, h2, h3 {
+        font-size: 1.5em;
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+
+    table, .section {
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,186 @@
+doctype html
+html
+    head
+        title= 'Consultorio' 
+        link(rel="icon" type="image/png" href="/favicon2.png")
+        style.
+            
+            body {
+                font-family: 'Helvetica Neue', Arial, sans-serif;
+                background-color: #f3f6fb;
+                margin: 0;
+                padding: 20px;
+                color: #333;
+            }
+
+            h1, h2, h3 {
+                color: #34495e;
+                margin-bottom: 15px;
+            }
+
+            h1 {
+                border-bottom: 2px solid #3498db;
+                padding-bottom: 5px;
+                margin-bottom: 20px;
+            }
+
+            h2 {
+                color: #1abc9c;
+                margin-bottom: 15px;
+            }
+
+            h3 {
+                color: #e67e22;
+                margin-bottom: 10px;
+            }
+
+            button {
+                background-color: #3498db;
+                color: #fff;
+                border: none;
+                padding: 10px 15px;
+                font-size: 16px;
+                cursor: pointer;
+                border-radius: 5px;
+                margin-top: 10px;
+                margin-right: 10px;
+            }
+
+            button:hover {
+                background-color: #2980b9;
+            }
+
+            .button-container {
+                margin-bottom: 20px;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+                background-color: #fff;
+                border: 1px solid #ccc;
+            }
+
+            table th, table td {
+                border: 1px solid #ddd;
+                padding: 10px;
+                text-align: left;
+            }
+
+            table th {
+                background-color: #ecf0f1;
+                font-weight: bold;
+                color: #34495e;
+            }
+
+            table tbody tr:nth-child(even) {
+                background-color: #f7f9fc;
+            }
+
+            input[type="date"], input[type="text"], input[type="password"], select, textarea {
+                width: 100%;
+                padding: 10px;
+                margin: 5px 0;
+                font-size: 16px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                box-sizing: border-box;
+            }
+
+            textarea {
+                resize: vertical;
+            }
+
+            .section {
+                border: 1px solid #ddd;
+                padding: 15px;
+                margin-bottom: 20px;
+                border-radius: 5px;
+                background-color: #ffffff;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+
+            #reloj {
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                font-size: 18px;
+                color: #fff;
+                font-weight: bold;
+                background-color: #e74c3c; 
+                padding: 10px; 
+                border-radius: 5px; 
+                box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2); 
+            }
+
+            button:disabled {
+                background-color: #bdc3c7;
+                cursor: not-allowed;
+            }
+
+            .login-page {
+                background-image: url('/login.jpg');
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center;
+                height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0;
+                padding: 0;
+            }
+
+            .login-container {
+                background-color: rgba(255, 255, 255, 0.85);
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+                text-align: center;
+                width: 300px;
+                max-width: 100%;
+            }
+
+            @media (max-width: 600px) {
+                body {
+                    padding: 10px;
+                }
+
+                h1, h2, h3 {
+                    font-size: 1.5em;
+                }
+
+                button {
+                    padding: 8px 12px;
+                    font-size: 14px;
+                }
+
+                table, .section {
+                    font-size: 14px;
+                }
+            }
+        script.
+            document.addEventListener('DOMContentLoaded', function() {
+                function actualizarReloj() {
+                    const ahora = new Date();
+                    const dia = String(ahora.getDate()).padStart(2, '0');
+                    const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+                    const anio = ahora.getFullYear();
+
+                    const horas = String(ahora.getHours()).padStart(2, '0');
+                    const minutos = String(ahora.getMinutes()).padStart(2, '0');
+                    const segundos = String(ahora.getSeconds()).padStart(2, '0');
+                    
+                    const fecha = `${dia}/${mes}/${anio}`;
+                    const tiempo = `${horas}:${minutos}:${segundos}`;
+
+                    document.getElementById('reloj').textContent = `${fecha} ${tiempo}`;
+                }
+
+                setInterval(actualizarReloj, 1000);
+                actualizarReloj();
+            });
+    body
+        div#reloj
+        block content

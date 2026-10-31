@@ -1,0 +1,35 @@
+extends layout.pug
+
+
+block content
+    h1 Turnos Futuros
+
+     div.button-container
+        button(onclick="window.location.href='/turnos/deldia'") Ver turnos del dia
+        button(onclick="window.location.href='/turnos/pasados'") Ver Turnos Pasados
+    table
+        thead
+            tr
+                th Fecha
+                th Horario
+                th Motivo de Consulta
+                th DNI Paciente
+                th Nombre
+                th Apellido
+                th Estado
+                th Acciones
+        tbody
+            if turnos.length > 0
+                each turno in turnos
+                    tr
+                        td= turno.fecha
+                        td= turno.horario
+                        td= turno.motivo_consulta
+                        td= turno.dni_paciente
+                        td= turno.nombre
+                        td= turno.apellido
+                        td= turno.estado
+                       
+            else
+                tr
+                    td(colspan="8") No hay turnos disponibles.

@@ -1,0 +1,41 @@
+extends layout.pug
+
+block content
+    h1 Turnos del Día
+
+    div.button-container
+        button(onclick="window.location.href='/turnos/pasados'") Ver demas turnos
+        button(onclick="window.location.href='/logout'") cerrar sesion 
+
+
+    table
+        thead
+            tr
+                th Fecha
+                th Horario
+                th Motivo de Consulta
+                th DNI Paciente
+                th Nombre
+                th Apellido
+                th Estado
+                th Acciones
+        tbody
+            if turnos.length > 0
+                each turno in turnos
+                    tr
+                        td= turno.fecha
+                        td= turno.horario
+                        td= turno.motivo_consulta
+                        td= turno.dni_paciente
+                        td= turno.nombre
+                        td= turno.apellido
+                        td(style=`color: ${turno.estado === 'Pendiente' ? 'darkgreen' : turno.estado === 'En Atencion' ? 'orange' : 'red'}; font-weight: bold`)= turno.estado
+                        td
+                            if turno.estado !== 'Finalizado'
+                                button(onclick=`window.location.href='/turnos/enAtencion/${turno.id_paciente}/${id_agendamedico}/${turno.id_turno}'`) Comenzar atención
+                            button(onclick=`window.location.href='/atenciones/historialpropios/${turno.id_paciente}/${id_agendamedico}'`) Ver mis atenciones
+                            button(onclick=`window.location.href='/atenciones/${turno.id_paciente}'`) Ver última atención
+            else
+                tr
+                    td(colspan="8") No hay turnos disponibles para hoy.
+            

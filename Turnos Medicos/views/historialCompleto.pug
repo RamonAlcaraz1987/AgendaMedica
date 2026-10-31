@@ -1,0 +1,32 @@
+extends layout
+
+block content
+  
+  button(onclick="window.history.back()") Volver
+  
+  h1 Historial Médico
+
+  table(border="1", cellpadding="5", cellspacing="0")
+    thead
+      tr
+        th Fecha
+        th Médico
+        th Motivo de Consulta
+        th Diagnóstico
+        th Alergias
+        th Antecedentes
+        th Medicamentos
+        th Hábitos
+        th Evolución
+    tbody
+      each atencion in atenciones
+        tr
+          td= atencion.fecha
+          td= atencion.medico
+          td= atencion.motivo_consulta
+          td= atencion.diagnostico
+          td= atencion.alergias
+          td= atencion.antecedentes
+          td= atencion.medicamentos
+          td= atencion.habitos
+          td!= atencion.evolucion

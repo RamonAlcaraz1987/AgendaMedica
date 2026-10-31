@@ -1,0 +1,572 @@
+extends layout
+
+block content
+  button(onclick="window.history.back()") Volver
+
+  h1 Historial Médico - Última Atención #{fechaAtencion.toLocaleDateString("es-ES", { year: 'numeric', month: 'long', day: 'numeric' })}
+
+
+  h2 Alergias
+    table(border="1", cellpadding="5", cellspacing="0")
+      thead
+        tr
+          th Nombre
+          th Fecha Desde
+          th Fecha Hasta
+          th Acción
+      tbody
+        each item in alergias
+          tr(id=`alergia-${item.id_alergia}`) // Verifica que el ID se genera como esperado
+            td
+              select(name="nombre")
+                each tipoAlergia in tiposAlergias
+                  option(value=tipoAlergia.id_nomenclada, selected=tipoAlergia.id_nomenclada == item.id_nomenclada)= tipoAlergia.nombre
+            td
+              input(type="date", value=item.fecha_desde ? item.fecha_desde : '', style="width: 100%; padding: 10px; font-size: 16px;")
+            td
+              input(type="date", value=item.fecha_hasta ? item.fecha_hasta : '', style="width: 100%; padding: 10px; font-size: 16px;")
+            td
+              button(onclick=`eliminarAlergia(${item.id_alergia})`) Eliminar
+              button(onclick=`modificarAlergia(${item.id_alergia})`) Actualizar
+  
+  //- Tabla para Antecedentes
+  h2 Antecedentes
+    table(border="1", cellpadding="5", cellspacing="0")
+      thead
+        tr
+          th Descripción
+          th Fecha Desde
+          th Fecha Hasta
+          th Acción
+      tbody
+        each item in antecedentes
+          tr(id=`antecedente-${item.id_antecedentes}`)
+            td
+              input(type="text", value=item.descripcion, style="width: 100%; padding: 10px; font-size: 16px;")
+            td
+              input(type="date", value=item.fecha_desde || '', style="width: 100%; padding: 10px; font-size: 16px;")
+            td
+              input(type="date", value=item.fecha_hasta || '', style="width: 100%; padding: 10px; font-size: 16px;")
+            td
+              button(onclick=`eliminarAntecedente(${item.id_antecedentes})`) Eliminar
+              button(onclick=`modificarAntecedente(${item.id_antecedentes})`) Actualizar 
+     
+
+  //- Tabla para Medicamentos
+  h2 Medicamentos
+  table(border="1", cellpadding="5", cellspacing="0")
+    thead
+      tr
+        th Descripción
+        th Acción
+    tbody
+      each item in medicamentos
+        tr(id=`medicamento-${item.id_medicamento}`)
+          td
+            input(type="text", value=item.descripcion, style="width: 100%; padding: 10px; font-size: 16px;")
+          td
+            button(onclick=`eliminarMedicamento(${item.id_medicamento})`) Eliminar
+            button(onclick=`modificarMedicamento(${item.id_medicamento})`) Actualizar
+
+  //- Tabla para Hábitos
+  h2 Hábitos
+  table(border="1", cellpadding="5", cellspacing="0")
+    thead
+      tr
+        th Descripción
+        th Fecha Desde
+        th Fecha Hasta
+        th Acción
+    tbody
+      each item in habitos
+        tr(id=`habito-${item.id_habito}`)
+          td
+            input(type="text", value=item.descripcion, style="width: 100%; padding: 10px; font-size: 16px;")
+          td
+            input(type="date", value=item.fecha_desde || '', style="width: 100%; padding: 10px; font-size: 16px;")
+          td
+            input(type="date", value=item.fecha_hasta || '', style="width: 100%; padding: 10px; font-size: 16px;")
+          td
+            button(onclick=`eliminarHabito(${item.id_habito})`) Eliminar
+            button(onclick=`modificarHabito(${item.id_habito})`) Actualizar
+   
+
+  //- Tabla para Diagnósticos
+  h2 Diagnósticos
+  table(border="1", cellpadding="5", cellspacing="0")
+    thead
+      tr
+        th Descripción
+        th Calidad
+        th Acción
+    tbody
+      each item in diagnosticos
+        tr(id=`diagnostico-${item.id_diagnostico}`)
+          td
+            input(type="text", value=item.descripcion, style="width: 100%; padding: 10px; font-size: 16px;")
+          td
+            select(name="calidad")
+              each tipoDiagnostico in tiposDiagnostico
+                option(value=tipoDiagnostico.id_calidad, selected=tipoDiagnostico.id_calidad == item.id_calidad)= tipoDiagnostico.calidad
+          if diagnosticos.length > 0
+            td
+              button(onclick=`eliminarDiagnostico (${item.id_diagnostico})`) Eliminar
+              button(onclick=`modificarDiagnostico (${item.id_diagnostico})`) Actualizar
+  //- Tabla para Evoluciones con Quill Editor
+  h2 Evoluciones
+  table(border="1", cellpadding="5", cellspacing="0")
+    thead
+      tr
+        th Descripción
+        th Acción
+    tbody
+      each item in evoluciones
+        tr(id=`evolucion-${item.id_evoluciones}`)
+          td
+            // Asegurarse de que el id esté correctamente formateado
+            .quill-editor(id=`editor-${item.id_evoluciones}`, style="width: 100%; min-height: 150px; padding: 10px; font-size: 16px;")!= item.descripcion
+          td
+            button(onclick=`eliminarEvolucion(${item.id_evoluciones})`) Eliminar
+            button(onclick=`modificarEvolucion(${item.id_evoluciones})`) Actualizar
+    
+
+  //- Mensaje de actualización
+  
+  link(rel="stylesheet", href="https://cdn.quilljs.com/1.3.6/quill.snow.css")
+  script(src="https://cdn.quilljs.com/1.3.6/quill.min.js")
+
+  block scripts
+    script.
+
+
+      function eliminarAlergia(id) {
+        fetch(`/alergias/delete/${id}`, {
+          method: 'DELETE',
+        })
+        setTimeout(() => {
+          window.location.reload();
+        }, 500)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const fila = document.getElementById(`alergia-${id}`);
+            fila.remove();
+            
+          
+            
+          } else {
+            console.error('Error al eliminar la alergia en el servidor');
+           
+          }
+        })
+        .catch(error => {
+          console.error('Error al intentar eliminar:', error);
+          
+
+        });
+      }
+
+      function eliminarAntecedente(id) {
+        fetch(`/antecedentes/delete/${id}`, {
+          method: 'DELETE',
+        })
+        setTimeout(() => {
+          window.location.reload();
+        }, 500)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const fila = document.getElementById(`antecedente-${id}`);
+            fila.remove();
+            
+          
+            
+          } else {
+            console.error('Error al eliminar la antecedente en el servidor');
+           
+          }
+        })
+        .catch(error => {
+          console.error('Error al intentar eliminar:', error);
+          
+
+        });
+      }
+
+      function eliminarMedicamento(id) {
+        fetch(`/medicamentos/delete/${id}`, {
+          method: 'DELETE',
+        })
+        setTimeout(() => {
+          window.location.reload();
+        }, 500)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const fila = document.getElementById(`medicamento-${id}`);
+            fila.remove();
+            
+          
+            
+          } else {
+            console.error('Error al eliminar la medicamento en el servidor');
+           
+          }
+        })
+        .catch(error => {
+          console.error('Error al intentar eliminar:', error);
+          
+
+        });
+      }
+
+      function eliminarHabito(id) {
+        fetch(`/habitos/delete/${id}`, {
+          method: 'DELETE',
+        })
+        setTimeout(() => {
+          window.location.reload();
+        }, 500)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const fila = document.getElementById(`habito-${id}`);
+            fila.remove();
+            
+          
+            
+          } else {
+            console.error('Error al eliminar la habito en el servidor');
+           
+          }
+        })
+        .catch(error => {
+          console.error('Error al intentar eliminar:', error);
+          
+
+        });
+      }
+
+      function eliminarDiagnostico(id) {
+        fetch(`/diagnosticos/delete/${id}`, {
+          method: 'DELETE',
+        })
+        setTimeout(() => {
+          window.location.reload();
+        }, 500)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const fila = document.getElementById(`diagnostico-${id}`);
+            fila.remove();
+            
+          
+            
+          } else {
+            console.error('Error al eliminar el diagnostico en el servidor');
+           
+          }
+        })
+        .catch(error => {
+          console.error('Error al intentar eliminar:', error);
+          
+
+        });
+      }
+
+      function eliminarEvolucion(id) {
+        fetch(`/evoluciones/delete/${id}`, {
+          method: 'DELETE',
+        })
+        setTimeout(() => {
+          window.location.reload();
+        }, 500)
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const fila = document.getElementById(`evolucion-${id}`);
+            fila.remove();
+            
+          
+            
+          } else {
+            console.error('Error al eliminar la evolucion en el servidor');
+           
+          }
+        })
+        .catch(error => {
+          console.error('Error al intentar eliminar:', error);
+          
+
+        });
+      }
+      function modificarAlergia(idAlergia) {
+          
+          const fila = document.getElementById(`alergia-${idAlergia}`);
+          if (!fila) {
+              console.error(`No se encontró la fila con ID alergia-${idAlergia}`);
+              return;
+          }
+
+          // Extraer los valores de la fila seleccionada
+          const nombre = fila.querySelector('select[name="nombre"]').value;
+        
+          const fechaDesde = fila.querySelectorAll('input[type="date"]')[0].value;
+          const fechaHasta = fila.querySelectorAll('input[type="date"]')[1].value;
+
+          // Crear el objeto con los datos nuevos de la alergia
+          const alergia = {
+              id_alergia: idAlergia,
+              id_nomenclada: nombre,
+              fecha_desde: fechaDesde,
+              fecha_hasta: fechaHasta
+          };
+
+          // Enviar la solicitud de actualización
+          fetch('/alergias/update', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(alergia),
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // Cambiar el texto del botón a "¡ACTUALIZADO!" y deshabilitarlo
+                  
+              } else {
+                  console.error('Error al actualizar la alergia:', data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Error en la solicitud:', error);
+              const botonActualizar = fila.querySelectorAll('button')[1];
+              botonActualizar.textContent = '¡ACTUALIZADO!';
+              botonActualizar.disabled = true;
+          });
+      }
+      function modificarAntecedente(id_antecedentes) {
+          const fila = document.getElementById(`antecedente-${id_antecedentes}`);
+          if (!fila) {
+              console.error(`No se encontró la fila con ID antecedente-${id_antecedentes}`);
+              return;
+          }
+
+          const descripcion = fila.querySelector('input[type="text"]').value;
+          const fechaDesde = fila.querySelectorAll('input[type="date"]')[0].value;
+          const fechaHasta = fila.querySelectorAll('input[type="date"]')[1].value;
+
+          const antecedente = {
+              id_antecedentes: id_antecedentes,
+              descripcion: descripcion,
+              fecha_desde: fechaDesde,
+              fecha_hasta: fechaHasta
+          };
+
+          fetch('/antecedentes/update', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(antecedente),
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  
+              } else {
+                  console.error('Error al actualizar el antecedente:', data.message);
+              }
+          })
+          .catch(error => console.error('Error en la solicitud:', error));
+              const botonActualizar = fila.querySelectorAll('button')[1];
+              botonActualizar.textContent = '¡ACTUALIZADO!';
+              botonActualizar.disabled = true;
+      }
+
+      function modificarHabito(id_habito) {
+          const fila = document.getElementById(`habito-${id_habito}`);
+          if (!fila) {
+              console.error(`No se encontró la fila con ID habito-${id_habito}`);
+              return;
+          }
+
+          const descripcion = fila.querySelector('input[type="text"]').value;
+          const fechaDesde = fila.querySelectorAll('input[type="date"]')[0].value;
+          const fechaHasta = fila.querySelectorAll('input[type="date"]')[1].value;
+
+          const habito = {
+              id_habito: id_habito,
+              descripcion: descripcion,
+              fecha_desde: fechaDesde,
+              fecha_hasta: fechaHasta
+          };
+
+          fetch('/habitos/update', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(habito),
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                 
+              } else {
+                  console.error('Error al actualizar el hábito:', data.message);
+              }
+          })
+          .catch(error => console.error('Error en la solicitud:', error));
+              const botonActualizar = fila.querySelectorAll('button')[1];
+              botonActualizar.textContent = '¡ACTUALIZADO!';
+              botonActualizar.disabled = true;
+      }
+      function modificarEvolucion(id_evolucion) {
+        const editorId = `editor-${id_evolucion}`;
+        console.log("Buscando editor con ID:", editorId); // <-- Verificar ID
+        
+        const editor = document.getElementById(editorId);
+        
+        if (editor) {
+          console.log("Editor encontrado:", editor);
+
+          const quillContent = editor.querySelector('.ql-editor'); 
+          const descripcion = quillContent ? quillContent.innerHTML : ''; 
+          
+          const evolucion = {
+            id_evoluciones: id_evolucion,
+            descripcion: descripcion
+          };
+
+          fetch('/evoluciones/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(evolucion),
+            
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              
+            } else {
+              console.error('Error al actualizar la evolución:', data.message);
+             
+            }
+          })
+          .catch(error => console.error('Error en la solicitud:', error));
+            setTimeout(() => {
+              window.location.reload();
+            }, 500)
+            
+            
+        } else {
+          console.error(`No se encontró el editor para el ID: ${editorId}`);
+        }
+      }
+      function modificarDiagnostico(id_diagnostico) {
+          const fila = document.getElementById(`diagnostico-${id_diagnostico}`);
+          if (!fila) {
+              console.error(`No se encontró la fila con ID diagnostico-${id_diagnostico}`);
+              return;
+          }
+
+          const descripcion = fila.querySelector('input[type="text"]').value;
+          const calidad = fila.querySelector('select[name="calidad"]').value;
+          
+
+          const diagnostico = {
+              id_diagnostico: id_diagnostico,
+              descripcion: descripcion,
+              id_calidad: calidad
+          };
+
+          fetch('/diagnosticos/update', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(diagnostico),
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  
+              } else {
+                  console.error('Error al actualizar el diagnóstico:', data.message);
+              }
+          })
+          .catch(error => console.error('Error en la solicitud:', error));
+            const botonActualizar = fila.querySelectorAll('button')[1];
+            botonActualizar.textContent = '¡ACTUALIZADO!';
+            botonActualizar.disabled = true;
+              
+      }
+      function modificarMedicamento(id_medicamento) {
+          const fila = document.getElementById(`medicamento-${id_medicamento}`);
+          if (!fila) {
+              console.error(`No se encontró la fila con ID medicamento-${id_medicamento}`);
+              return;
+          }
+
+          const descripcion = fila.querySelector('input[type="text"]').value;
+
+          const medicamento = {
+              id_medicamento: id_medicamento,
+              descripcion: descripcion
+          };
+
+          fetch('/medicamentos/update', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(medicamento),
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  
+              } else {
+                  console.error('Error al actualizar el medicamento:', data.message);
+              }
+          })
+          .catch(error => console.error('Error en la solicitud:', error));
+              const botonActualizar = fila.querySelectorAll('button')[1];
+              botonActualizar.textContent = '¡ACTUALIZADO!';
+              botonActualizar.disabled = true;
+      }
+                  
+            
+      
+      // Configuración de Quill para cada editor de evoluciones
+      document.querySelectorAll('.quill-editor').forEach((element) => {
+        const quill = new Quill(element, {
+          theme: 'snow',
+          placeholder: 'Escribe tu evolución aquí...',
+          modules: {
+            toolbar: [
+              [{ 'header': '1' }, { 'header': '2' }, { 'font': [] }],
+              [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+              [{ 'align': [] }],
+              ['bold', 'italic', 'underline'],
+              ['link'],
+              ['image'],
+              ['clean'] // Para borrar el formato
+            ]
+          }
+        });
+
+        // Puedes almacenar el contenido de Quill como JSON en un campo oculto si es necesario
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'descripcion_evolucion'; // Asegúrate de que el nombre corresponda con lo que necesitas
+        hiddenInput.value = JSON.stringify(quill.getContents());
+        element.parentNode.appendChild(hiddenInput); // Añadir el campo oculto para el envío
+
+      
+
+      });

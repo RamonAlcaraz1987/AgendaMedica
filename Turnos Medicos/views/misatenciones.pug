@@ -1,0 +1,61 @@
+extends layout
+
+block content
+    h1 Mi Historial con el Paciente
+
+    div.button-container
+        button(onclick="window.location.href='/turnos/deldia'") Volver
+        button(onclick="window.location.href='/logout'") cerrar sesion 
+
+        
+    
+    
+        
+
+    if paciente
+        div
+            h2 Datos del Paciente
+            p DNI: #{paciente.dni_paciente || 'No disponible'}
+            p Nombre: #{paciente.nombre || 'No disponible'}
+            p Apellido: #{paciente.apellido || 'No disponible'}
+            p Email: #{paciente.email || 'No disponible'}
+            p Dirección: #{paciente.direccion || 'No disponible'}
+            p Teléfono: #{paciente.telefono || 'No disponible'}
+
+           
+            if paciente.fecha_nac
+                - var fechaNacimiento = new Date(paciente.fecha_nac)
+                p Fecha de Nacimiento: #{isNaN(fechaNacimiento.getTime()) ? 'No disponible' : fechaNacimiento.toLocaleDateString('es-AR', { year: 'numeric', month: 'long', day: 'numeric' })}
+            else
+                p Fecha de Nacimiento: No disponible
+            
+            p Género: #{paciente.genero || 'No disponible'}
+
+        h2 Historial de Atenciones
+        if atenciones && atenciones.length > 0
+            table
+                thead
+                    tr
+                        th Fecha
+                        th Médico
+                        th Alergias
+                        th Antecedentes
+                        th Medicamentos
+                        th Hábitos
+                        th Diagnóstico
+                        th Evolución
+                tbody
+                    each atencion in atenciones
+                        tr
+                            td #{atencion.fecha || 'No disponible'}
+                            td #{atencion.medico || 'No disponible'}
+                            td #{atencion.alergias || 'No disponible'}
+                            td #{atencion.antecedentes || 'No disponible'}
+                            td #{atencion.medicamentos || 'No disponible'}
+                            td #{atencion.habitos || 'No disponible'}
+                            td #{atencion.diagnostico || 'No disponible'}
+                            td #{atencion.evolucion || 'No disponible'}
+        else
+            p No se encontraron atenciones para este paciente.
+    else
+        p No se encontraron datos para este paciente.
